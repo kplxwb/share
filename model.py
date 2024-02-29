@@ -3,7 +3,7 @@ import torch.nn as nn
 from torchcrf import CRF
 from data_loader import TweetProcessor
 
-
+#字符卷积神经网络
 class CharCNN(nn.Module):
     def __init__(self,
                  max_word_len=30,
@@ -58,7 +58,7 @@ class CharCNN(nn.Module):
         output = output.view(batch_size, max_seq_len, -1)  # (b, s, final_char_dim)
         return output
 
-
+#双向长短期记忆网络
 class BiLSTM(nn.Module):
     def __init__(self, args, pretrained_word_matrix):
         super(BiLSTM, self).__init__()
@@ -95,7 +95,7 @@ class BiLSTM(nn.Module):
 
         return lstm_output
 
-
+#共同注意力
 class CoAttention(nn.Module):
     def __init__(self, args):
         super(CoAttention, self).__init__()
@@ -160,7 +160,7 @@ class CoAttention(nn.Module):
 
         return att_text_features, att_img_features
 
-
+#门控多模态融合
 class GMF(nn.Module):
     """GMF (Gated Multimodal Fusion)"""
 
@@ -187,7 +187,7 @@ class GMF(nn.Module):
 
         return multimodal_features
 
-
+#滤门
 class FiltrationGate(nn.Module):
     """
     In this part, code is implemented in other way compare to equation on paper.
@@ -223,7 +223,7 @@ class FiltrationGate(nn.Module):
 
         return output
 
-
+#自适应共同注意力网络
 class ACN(nn.Module):
     """
     ACN (Adaptive CoAttention Network)

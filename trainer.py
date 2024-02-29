@@ -12,7 +12,6 @@ from utils import load_vocab, compute_metrics, report
 from model import ACN
 
 logger = logging.getLogger(__name__)
-
 OPTIMIZER_LIST = {
     "adam": Adam,
     "rmsprop": RMSprop
@@ -40,7 +39,9 @@ class Trainer(object):
         self.model = ACN(args, self.pretrained_word_matrix)
 
         # GPU or CPU
+        #os.environ['CUDA_VISIBLE_DEVICES'] = '0'
         self.device = "cuda" if torch.cuda.is_available() and not args.no_cuda else "cpu"
+        
         self.model.to(self.device)
 
     def train(self):
@@ -67,7 +68,8 @@ class Trainer(object):
         for _ in train_iterator:
             epoch_iterator = tqdm(train_dataloader, desc="Iteration")
             for step, batch in enumerate(epoch_iterator):
-                self.model.train()
+                self.model.train() 
+                
                 batch = tuple(t.to(self.device) for t in batch)  # GPU or CPU
 
                 inputs = {'word_ids': batch[0],
@@ -76,6 +78,7 @@ class Trainer(object):
                           'mask': batch[3],
                           'label_ids': batch[4]}
                 outputs = self.model(**inputs)
+               
                 loss = outputs[0]
 
                 loss.backward()
@@ -115,6 +118,7 @@ class Trainer(object):
         nb_eval_steps = 0
         preds = None
         out_label_ids = None
+        
 
         for batch in tqdm(eval_dataloader, desc="Evaluating"):
             self.model.eval()
@@ -134,10 +138,10 @@ class Trainer(object):
             # Slot prediction
             if preds is None:
                 # decode() in `torchcrf` returns list with best index directly
-                preds = np.array(self.model.crf.decode(logits, mask=inputs['mask'].byte()))
+                preds = np.array(self.model.crf.decode(logits, mask=inputs['mask'].byte()),dtype=object)
                 out_label_ids = inputs["label_ids"].detach().cpu().numpy()
             else:
-                preds = np.append(preds, np.array(self.model.crf.decode(logits, mask=inputs['mask'].byte())), axis=0)
+                preds = np.append(preds, np.array(self.model.crf.decode(logits, mask=inputs['mask'].byte()),dtype=object), axis=0)
                 out_label_ids = np.append(out_label_ids, inputs["label_ids"].detach().cpu().numpy(), axis=0)
 
         eval_loss = eval_loss / nb_eval_steps
